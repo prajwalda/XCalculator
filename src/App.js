@@ -4,45 +4,73 @@ import {useState,useEffect} from "react"
 export default function App() {
 
   const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+
+  const isOperator = (char) => ['+', '-', '*', '/'].includes(char);
+
+  const calculate = (expression) => {
+    try {
+      let result = 0;
+      let currentOperator = '+';
+      let currentNumber = '';
+      
+      for (let char of expression) {
+        if (isOperator(char)) {
+          currentOperator = char;
+        } else {
+          currentNumber += char;
+          if (isOperator(expression.charAt(expression.indexOf(char) + 1)) || expression.indexOf(char) === expression.length - 1) {
+            switch (currentOperator) {
+              case '+':
+                result += parseInt(currentNumber, 10);
+                break;
+              case '-':
+                result -= parseInt(currentNumber, 10);
+                break;
+              case '*':
+                result *= parseInt(currentNumber, 10);
+                break;
+              case '/':
+                result /= parseInt(currentNumber, 10);
+                break;
+              default:
+                break;
+            }
+            currentNumber = '';
+          }
+        }
+      }
+
+      setResult(result);
+    } catch (error) {
+      setResult('Error');
+    }
+  };
 
   const handleButtonClick = (value) => {
     setInput((prevInput) => prevInput + value);
   };
 
+  const handleCalculate = () => {
+    calculate(input);
+  };
+
   const handleClear = () => {
     setInput('');
+    setResult('');
   };
-
-  const handleCalculate = () => {
-    try {
-      setInput(eval(input).toString());
-    } catch (error) {
-      setInput('Error');
-    }
-  };
-
 
   return (
     <div className="calculator">
-      <input type="text" value={input} disabled />
+      <input type="text" value={input} readOnly />
       <div className="buttons">
-        <button onClick={() => handleButtonClick('7')}>7</button>
-        <button onClick={() => handleButtonClick('8')}>8</button>
-        <button onClick={() => handleButtonClick('9')}>9</button>
-        <button onClick={() => handleButtonClick('+')}>+</button>
-        <button onClick={() => handleButtonClick('4')}>4</button>
-        <button onClick={() => handleButtonClick('5')}>5</button>
-        <button onClick={() => handleButtonClick('6')}>6</button>
-        <button onClick={() => handleButtonClick('-')}>-</button>
-        <button onClick={() => handleButtonClick('1')}>1</button>
-        <button onClick={() => handleButtonClick('2')}>2</button>
-        <button onClick={() => handleButtonClick('3')}>3</button>
-        <button onClick={() => handleButtonClick('*')}>*</button>
-        <button onClick={() => handleButtonClick('0')}>0</button>
-        <button onClick={() => handleButtonClick('/')}>/</button>
-        <button onClick={handleCalculate}>=</button>
-        <button onClick={handleClear}>C</button>
+        {[7, 8, 9, '+', 4, 5, 6, '-', 1, 2, 3, '*', 0, '/', '=', 'C'].map((button) => (
+          <button key={button} onClick={() => (button === '=' ? handleCalculate() : button === 'C' ? handleClear() : handleButtonClick(button))}>
+            {button}
+          </button>
+        ))}
       </div>
+      <div>{result}</div>
     </div>
   );
 }
