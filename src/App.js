@@ -84,9 +84,8 @@ export default function App() {
               stack.push(a * b);
               break;
             case '/':
-              if (b === 0) {
-                throw new Error('Division by zero');
-              }
+              
+             
               stack.push(a / b);
               break;
             default:
