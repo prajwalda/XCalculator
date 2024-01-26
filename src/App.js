@@ -85,8 +85,8 @@ export default function App() {
               break;
             case '/':
               
-             
-              stack.push(a / b);
+              if(a === 0 && b === 0)stack.push(0);
+              else stack.push(a / b);
               break;
             default:
               break;
