@@ -5,81 +5,137 @@ export default function App() {
 
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
-  const [error, setError] = useState('');
-
-  const isOperator = (char) => ['+', '-', '*', '/'].includes(char);
-
-  const calculate = (expression) => {
-    try {
-      let result = 0;
-      let currentOperator = '+';
-      let currentNumber = '';
-
-      for (let char of expression) {
-        if (isOperator(char)) {
-          currentOperator = char;
-        } else {
-          currentNumber += char;
-          if (isOperator(expression.charAt(expression.indexOf(char) + 1)) || expression.indexOf(char) === expression.length - 1) {
-            switch (currentOperator) {
-              case '+':
-                result += parseInt(currentNumber, 10);
-                break;
-              case '-':
-                result -= parseInt(currentNumber, 10);
-                break;
-              case '*':
-                result *= parseInt(currentNumber, 10);
-                break;
-              case '/':
-                result /= parseInt(currentNumber, 10);
-                break;
-              default:
-                break;
-            }
-            currentNumber = '';
-          }
-        }
-      }
-
-      setResult(result);
-      setError('');
-    } catch (error) {
-      setResult('');
-      setError('Error');
-    }
-  };
 
   const handleButtonClick = (value) => {
     setInput((prevInput) => prevInput + value);
   };
 
-  const handleCalculate = () => {
-    if (input.trim() === '' || isOperator(input.charAt(input.length - 1))) {
-      setError('Invalid Expression');
-    } else {
-      calculate(input);
-    }
-  };
-
   const handleClear = () => {
     setInput('');
     setResult('');
-    setError('');
+  };
+
+  const handleEvaluate = () => {
+    try {
+      const sanitizedInput = input.replace(/[^-()\d/*+.]/g, ''); // Sanitize input
+      setResult(parseExpression(sanitizedInput));
+    } catch (error) {
+      setResult('Error');
+    }
+  };
+
+  const parseExpression = (expr) => {
+    // Custom expression parser
+    const operators = ['+', '-', '*', '/'];
+    const precedence = { '+': 1, '-': 1, '*': 2, '/': 2 };
+
+    const output = [];
+    const operatorsStack = [];
+
+    const processOperator = (operator) => {
+      while (
+        operatorsStack.length &&
+        precedence[operatorsStack[operatorsStack.length - 1]] >= precedence[operator]
+      ) {
+        output.push(operatorsStack.pop());
+      }
+      operatorsStack.push(operator);
+    };
+
+    const processToken = (token) => {
+      if (/\d/.test(token)) {
+        output.push(parseFloat(token));
+      } else if (operators.includes(token)) {
+        processOperator(token);
+      } else if (token === '(') {
+        operatorsStack.push(token);
+      } else if (token === ')') {
+        while (operatorsStack.length && operatorsStack[operatorsStack.length - 1] !== '(') {
+          output.push(operatorsStack.pop());
+        }
+        operatorsStack.pop();
+      }
+    };
+
+    const tokens = expr.match(/(?:\d+\.?\d*|\.\d+|[+\-*/()])/g) || [];
+
+    tokens.forEach((token) => processToken(token));
+
+    while (operatorsStack.length) {
+      output.push(operatorsStack.pop());
+    }
+
+    const evaluateRPN = (rpn) => {
+      const stack = [];
+      rpn.forEach((token) => {
+        if (typeof token === 'number') {
+          stack.push(token);
+        } else {
+          const b = stack.pop();
+          const a = stack.pop();
+          switch (token) {
+            case '+':
+              stack.push(a + b);
+              break;
+            case '-':
+              stack.push(a - b);
+              break;
+            case '*':
+              stack.push(a * b);
+              break;
+            case '/':
+              if (b === 0) {
+                throw new Error('Division by zero');
+              }
+              stack.push(a / b);
+              break;
+            default:
+              break;
+          }
+        }
+      });
+      if (stack.length !== 1) {
+        throw new Error('Invalid expression');
+      }
+      return stack[0];
+    };
+
+    const result = evaluateRPN(output);
+
+    // Handle Infinity for division by zero
+    return isFinite(result) ? result : 'Infinity';
   };
 
   return (
-    <div className="calculator">
+    <div>
       <input type="text" value={input} readOnly />
-      <div className="buttons">
-        {[7, 8, 9, '+', 4, 5, 6, '-', 1, 2, 3, '*', 0, '/', '=', 'C'].map((button) => (
-          <button key={button} onClick={() => (button === '=' ? handleCalculate() : button === 'C' ? handleClear() : handleButtonClick(button))}>
-            {button}
-          </button>
-        ))}
+      <div>
+        <button onClick={() => handleButtonClick('7')}>7</button>
+        <button onClick={() => handleButtonClick('8')}>8</button>
+        <button onClick={() => handleButtonClick('9')}>9</button>
+        <button onClick={() => handleButtonClick('+')}>+</button>
       </div>
-      {error && <div className="error">{error}</div>}
-      {result && !error && <div>{result}</div>}
+      <div>
+        <button onClick={() => handleButtonClick('4')}>4</button>
+        <button onClick={() => handleButtonClick('5')}>5</button>
+        <button onClick={() => handleButtonClick('6')}>6</button>
+        <button onClick={() => handleButtonClick('-')}>-</button>
+      </div>
+      <div>
+        <button onClick={() => handleButtonClick('1')}>1</button>
+        <button onClick={() => handleButtonClick('2')}>2</button>
+        <button onClick={() => handleButtonClick('3')}>3</button>
+        <button onClick={() => handleButtonClick('*')}>*</button>
+      </div>
+      <div>
+        <button onClick={() => handleButtonClick('0')}>0</button>
+        <button onClick={() => handleClear()}>C</button>
+        <button onClick={() => handleEvaluate()}>=</button>
+        <button onClick={() => handleButtonClick('/')}>/</button>
+      </div>
+      <div>
+        <p>Result: {result}</p>
+      </div>
     </div>
   );
 }
