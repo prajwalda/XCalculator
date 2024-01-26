@@ -5,6 +5,7 @@ export default function App() {
 
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
+  const [error, setError] = useState('');
 
   const isOperator = (char) => ['+', '-', '*', '/'].includes(char);
 
@@ -13,7 +14,7 @@ export default function App() {
       let result = 0;
       let currentOperator = '+';
       let currentNumber = '';
-      
+
       for (let char of expression) {
         if (isOperator(char)) {
           currentOperator = char;
@@ -42,8 +43,10 @@ export default function App() {
       }
 
       setResult(result);
+      setError('');
     } catch (error) {
-      setResult('Error');
+      setResult('');
+      setError('Error');
     }
   };
 
@@ -52,12 +55,17 @@ export default function App() {
   };
 
   const handleCalculate = () => {
-    calculate(input);
+    if (input.trim() === '' || isOperator(input.charAt(input.length - 1))) {
+      setError('Invalid Expression');
+    } else {
+      calculate(input);
+    }
   };
 
   const handleClear = () => {
     setInput('');
     setResult('');
+    setError('');
   };
 
   return (
@@ -70,7 +78,8 @@ export default function App() {
           </button>
         ))}
       </div>
-      <div>{result}</div>
+      {error && <div className="error">{error}</div>}
+      {result && !error && <div>{result}</div>}
     </div>
   );
 }
