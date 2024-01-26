@@ -17,7 +17,7 @@ export default function App() {
 
   const handleEvaluate = () => {
     try {
-      const sanitizedInput = input.replace(/[^-()\d/*+.]/g, ''); // Sanitize input
+      const sanitizedInput = input.replace(/[^-()\d/*+.]/g, ''); 
       setResult(parseExpression(sanitizedInput));
     } catch (error) {
       setResult('Error');
@@ -25,7 +25,6 @@ export default function App() {
   };
 
   const parseExpression = (expr) => {
-    // Custom expression parser
     const operators = ['+', '-', '*', '/'];
     const precedence = { '+': 1, '-': 1, '*': 2, '/': 2 };
 
@@ -101,7 +100,6 @@ export default function App() {
 
     const result = evaluateRPN(output);
 
-    // Handle Infinity for division by zero
     return isFinite(result) ? result : 'Infinity';
   };
 
